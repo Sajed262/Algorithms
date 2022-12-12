@@ -10,43 +10,6 @@
 #include <assert.h>
 #include <limits.h>
 
-class BFSInfo;
-
-// the bfs array is the output, each element is the the shortest path from source.
-// pay attention to delete the bfs array when you finish using it.
-BFSInfo &breadthFirstSearch(Graph &gr, int source)
-{
-    assert((source >= gr.numOfVertices() || source < 0));
-
-    // initializing
-    BFSInfo bfs(source, gr.numOfVertices());
-
-    // the algorithm
-    while (!bfs.qu.isEmpty())
-    {
-        int head = bfs.qu.head()->key;
-        gr.getEdges()[head].getFirstKey();
-
-        while (gr.getEdges()[head].Iterator)
-        {
-            int dest = gr.getEdges()[head].Iterator->key;
-            if (bfs.reached_by_source[dest] == -1) // that means dest was never in the queue.
-            {
-                bfs.reached_by_source[dest] = 1;
-                bfs.distance[dest] = bfs.distance[head] + 1;
-                bfs.qu.enqueue(dest, dest);
-                bfs.reached_vertices++;
-                bfs.parent[dest] = head;
-            }
-            gr.getEdges()[head].getNextKey();
-        }
-
-        bfs.qu.dequeue();
-    }
-
-    return bfs;
-}
-
 class BFSInfo
 {
 public:
@@ -120,5 +83,43 @@ public:
         delete[] reached_by_source;
     }
 };
+
+
+// the bfs array is the output, each element is the the shortest path from source.
+// pay attention to delete the bfs array when you finish using it.
+BFSInfo breadthFirstSearch(Graph &gr, int source)
+{
+    assert(source < gr.numOfVertices());
+    assert(source >= 0);
+
+    // initializing
+    BFSInfo bfs(source, gr.numOfVertices());
+
+    // the algorithm
+    while (!bfs.qu.isEmpty())
+    {
+        int head = bfs.qu.head()->key;
+        gr.getEdges()[head].getFirstKey();
+
+        while (gr.getEdges()[head].Iterator)
+        {
+            int dest = gr.getEdges()[head].Iterator->key;
+            if (bfs.reached_by_source[dest] == -1) // that means dest was never in the queue.
+            {
+                bfs.reached_by_source[dest] = 1;
+                bfs.distance[dest] = bfs.distance[head] + 1;
+                bfs.qu.enqueue(dest, dest);
+                bfs.reached_vertices++;
+                bfs.parent[dest] = head;
+            }
+            gr.getEdges()[head].getNextKey();
+        }
+
+        bfs.qu.dequeue();
+    }
+
+    return bfs;
+}
+
 
 #endif //BFS

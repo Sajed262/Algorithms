@@ -2,10 +2,8 @@
 //
 //
 
-
 #ifndef DFS
 #define DFS
-
 
 #include "Graph.h"
 #include "Queue.h"
@@ -73,47 +71,62 @@ public:
     }
 };
 
-DFSInfo depthFirstSearch(Graph &graph, int source = 0);
+DFSInfo depthFirstSearch(Graph &graph, bool for_SCC = false);
 void visit(Graph &g, int u, DFSInfo &dfs, int *s);
 
 // the dfs choses the vertices in visit you by order.(from the small index to the big)
-// by default the dfs starts from the first vertex 0.
-DFSInfo depthFirstSearch(Graph &graph, int source) // THE ALGORITHM.
+// the boolean parameter will be used for the SCC algorithm.
+DFSInfo depthFirstSearch(Graph &graph, bool for_SCC) // THE ALGORITHM.
 {
-    assert(source < graph.numOfVertices());
-    assert(source >= 0);
-
     // initializing
     int status[graph.numOfVertices()] = {0}; // 0 for unvisited vertices,1 for visited.
     DFSInfo info(graph.numOfVertices());
 
     // the algorithm
-    visit(graph, source, info, status); // visiting the source in case the source is not 0.
-    for (int u = 0; u < graph.numOfVertices(); u++)
-        if (status[u] == 0)
-            visit(graph, u, info, status);
-
+    if (for_SCC == false)
+    {
+        for (int u = 0; u < graph.numOfVertices(); u++)
+            if (status[u] == 0)
+                visit(graph, u, info, status);
+    }
+    // in the SCC alg we use dfs twice, once on the graph as usual. and once on the opposite graph,
+    // but in the main loop of dfs consider the vertices in decreasing order of finish[u] as computed on the the first dfs.
+    else
+    {
+        vector<apex<int>> vec;
+        for (int i = 0; i < info.vertices; i++)
+        {
+            apex<int> tmp(info.finish[i], i); // the i is the vertex.
+            vec.push_back(tmp);
+        }
+        MinHeap<int> heap(vec);
+        vector<apex<int>> sorted_by_finish_time;
+        sorted_by_finish_time = heap.heapSort();
+        for (int i = sorted_by_finish_time.size() - 1; i >= 0; i--)
+            if(status[sorted_by_finish_time[i].data] == 0)
+                visit(graph,sorted_by_finish_time[i].data,info,status);
+    }
     return info;
 }
 
 // the time is in refrence so that we work on the real variable time and not a copy of it.
 void visit(Graph &g, int u, DFSInfo &dfs, int *s)
 {
-    dfs.discovery[u] = dfs.time++;   // u gets the current time, and we add the time by 1.
-    s[u] = 1;                        // u marked as visited.
-    g.getEdges()[u].getFirstKey();   // sets the iterator to the first edge.
-    while (g.getEdges()[u].Iterator) // assume the edge is u->v for each v that forms an edge with u:
+    dfs.discovery[u] = dfs.time++;                       // u gets the current time, and we add the time by 1.
+    s[u] = 1;                                            // u marked as visited.
+    List<int> sorted_edges = g.getEdges()[u].sortList(); // chosing the vertices in order.
+    sorted_edges.getFirstKey();                          // sets the iterator to the first edge.
+    while (sorted_edges.Iterator)                        // assume the edge is u->v for each v that forms an edge with u:
     {
-        int v = g.getEdges()[u].Iterator->key;
+        int v = sorted_edges.Iterator->key;
         if (s[v] == 0) // if v is not visited
         {
             dfs.parent[v] = u;   // thats where the depth comes from, cause we go deep in the vertices and by the length from the source (like BFS).
             visit(g, v, dfs, s); // visit v
         }
+        sorted_edges.getNextKey();
     }
     dfs.finish[u] = dfs.time++;
 }
-
-
 
 #endif // DFS

@@ -83,14 +83,14 @@ DFSInfo depthFirstSearch(Graph &graph, bool for_SCC) // THE ALGORITHM.
     DFSInfo info(graph.numOfVertices());
 
     // the algorithm
-    if (for_SCC == false)
+    if (for_SCC == false) // the regular DFS, visiting by order.
     {
         for (int u = 0; u < graph.numOfVertices(); u++)
             if (status[u] == 0)
                 visit(graph, u, info, status);
     }
-    // in the SCC alg we use dfs twice, once on the graph as usual. and once on the opposite graph,
-    // but in the main loop of dfs consider the vertices in decreasing order of finish[u] as computed on the the first dfs.
+    // in the SCC alg we use dfs twice, once on the graph a regular dfs. and once on the opposite graph,
+    // but in the main loop of dfs consider the vertices in decreasing order of finish[u] as computed on the the first run of the dfs.
     else
     {
         vector<apex<int>> vec;
@@ -103,8 +103,8 @@ DFSInfo depthFirstSearch(Graph &graph, bool for_SCC) // THE ALGORITHM.
         vector<apex<int>> sorted_by_finish_time;
         sorted_by_finish_time = heap.heapSort();
         for (int i = sorted_by_finish_time.size() - 1; i >= 0; i--)
-            if(status[sorted_by_finish_time[i].data] == 0)
-                visit(graph,sorted_by_finish_time[i].data,info,status);
+            if (status[sorted_by_finish_time[i].data] == 0)
+                visit(graph, sorted_by_finish_time[i].data, info, status);
     }
     return info;
 }
